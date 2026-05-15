@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(printf '\\\\xEF\\\\xBB\\\\xBF')",
+      "Bash(cat /tmp/bom.bin git-push.ps1)",
+      "Bash(mv git-push-bom.ps1 git-push.ps1)",
+      "Bash(rm -f /tmp/bom.bin)",
+      "Bash(xxd *)"
+    ]
+  }
+}
