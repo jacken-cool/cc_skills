@@ -5,7 +5,8 @@
       "Bash(cat /tmp/bom.bin git-push.ps1)",
       "Bash(mv git-push-bom.ps1 git-push.ps1)",
       "Bash(rm -f /tmp/bom.bin)",
-      "Bash(xxd *)"
+      "Bash(xxd *)",
+      "Bash(git remote *)"
     ]
   }
 }
