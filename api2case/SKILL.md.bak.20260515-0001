@@ -1,0 +1,180 @@
+---
+name: api2case
+description: 接口描述（PDF/OpenAPI/文本）→ 卡片式 Markdown 接口测试用例文档。专注接口测试，输出格式固定：目录 + 接口分组 + 每用例一个卡片（元信息表 + 请求体JSON + 断言三列表）。触发词：接口用例md、api用例文档、接口描述转用例、生成接口测试文档、api test case markdown、api2case。
+---
+
+# 接口描述 → 测试用例 Markdown
+
+> `api2case`：接口规范（PDF·OpenAPI·文本）→ 可读 Markdown 用例文档
+
+## 执行流程
+
+```
+输入确认 ──→ 提取 ──→ API分析 ──→ 用例设计 ──→ 渲染输出
+```
+
+### 步骤 1：输入确认
+
+判断用户提供的输入类型：
+
+| 输入 | 处理 |
+|------|------|
+| PDF 文件 | → 步骤 2（pymupdf 提取） |
+| Apifox OpenAPI URL | → 用 curl 抓取 YAML/JSON → 步骤 3 |
+| Apifox OpenAPI 本地 `.md`/`.yaml` 文件 | → 直接读取 → 步骤 3 |
+| 直接粘贴的接口文本 | → 跳过提取，直接步骤 3 |
+| 已有 CSV 文件 | → 读取 CSV → 直接步骤 5 渲染 |
+| 对话上下文中的接口信息 | → 直接步骤 3 |
+
+### 步骤 2：PDF 提取（仅 PDF 输入时执行）
+
+使用 pymupdf 提取文本：
+
+```python
+import fitz, sys, io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+doc = fitz.open('PDF文件路径')
+for i, page in enumerate(doc):
+    print(f'\n===== 第{i+1}页 =====')
+    print(page.get_text())
+```
+
+若提取为空 → PDF 为扫描件，提示用户手动提供文字内容。
+
+### 步骤 3：API 分析
+
+从提取/提供的文本中识别：
+
+- **接口**：URL、Method
+- **请求参数**：名称、类型、必填/可选、约束、说明
+- **响应结构**：字段名、类型、含义、嵌套结构
+- **业务规则**：降级逻辑、数量限制、循环算法、条件判断
+- **错误码**：510 等非200响应定义
+
+**🔲 检查点 1 — 确认分析结果**：将识别结果汇总为表格展示，等用户确认后再进入用例设计：
+
+```
+| 接口 | Method | Path | 参数数 | 业务规则数 |
+|------|--------|------|--------|-----------|
+| 查询用户智能体 | POST | /api/v1/agents/list | 4 | 3 |
+```
+
+若用户纠正遗漏或错误，回到步骤 3 重新分析。
+
+### 步骤 4：用例设计
+
+**必须读取 `references/test-design-rules.md`**，按其中的方法论设计用例。
+
+核心要求：
+1. 按 6 类场景覆盖：入口/正常 → 降级 → 业务规则 → 响应结构 → 参数校验 → 异常安全
+2. P0 优先覆盖主流程、降级、核心业务规则
+3. 每条断言使用 `$.response.` 前缀
+4. 断言三元组：(JSONPath, 对比类型, 断言值)
+
+完成后，将用例组织为 Python dict 列表，写入临时 JSON 文件供步骤 5 使用。
+
+**用例数据结构：**
+```python
+{
+    "api_name": "查询用户智能体",          # 接口中文名
+    "url": "POST /api/v1/agents/list",    # Method + Path
+    "scene": "入口场景-首页",              # 场景分类
+    "name": "首页入口-不传suggestCateCode", # 用例标题
+    "desc": "不传参数时默认返回首页问题",    # 描述（一句话）
+    "pre": "1. 首页分类已配置开场问题",     # 前置条件（\n分点，无则 ""）
+    "post": "",                           # 后置条件（无则 ""）
+    "body": '{"appType":"infinitus",...}', # 请求体JSON（GET时 ""）
+    "assertions": [                        # 断言三元组列表
+        ("$.response.code", "=", "00000"),
+        ("$.response.data.field", "!=", "null"),
+    ],
+    "priority": "P0"                       # P0/P1/P2
+}
+```
+
+**🔲 检查点 2 — 确认用例概要**：用例设计完成后，先展示概要给用户确认，不要直接渲染：
+
+```
+共设计 N 条用例，覆盖 M 个接口
+- 接口A: X条 (P0: a, P1: b, P2: c)
+- 接口B: Y条 (P0: d, P1: e, P2: f)
+
+场景覆盖：入口/正常 ✓ | 降级 ✓ | 业务规则 ✓ | 响应结构 ✓ | 参数校验 ✓ | 异常安全 ✓
+```
+
+用户确认后写入临时 JSON，进入步骤 5。若用户要求调整，回到步骤 4 修改。
+
+### 步骤 5：渲染输出
+
+调用 `scripts/render_md.py` 生成 Markdown 文件：
+
+```bash
+python C:/Users/EDY/.claude/skills/api2case/scripts/render_md.py \
+    --input /tmp/api2case_cases.json \
+    --title "开场问题" \
+    --output 接口测试用例_开场问题.md
+```
+
+`render_md.py` 也支持直接读取 CSV：
+```bash
+python scripts/render_md.py \
+    --csv 接口测试用例.csv \
+    --title "开场问题" \
+    --output 接口测试用例.md
+```
+
+---
+
+## Markdown 输出格式
+
+格式固定，不可变。详见 `references/output-format.md`。
+
+```markdown
+# 接口测试用例 — {标题}
+
+共 N 条用例，覆盖 M 个接口
+
+## 目录
+- [接口名](#接口名)（X条）
+
+---
+
+## 接口名
+
+### 1. [P0] 用例名称
+
+| 字段 | 内容 |
+|------|------|
+| **接口** | `POST /api/v1/xxx` |
+| **场景** | 场景分类 |
+| **描述** | 描述 |
+
+**请求体：**
+```json
+{...}
+```
+
+**断言：**
+
+| 列名 | 对比类型 | 断言值 |
+|------|---------|--------|
+| $.response.code | = | 00000 |
+```
+
+---
+
+## 输出质量规则
+
+- 锚点目录：每个接口一个锚点链接，括号注明条数
+- 前置/后置为空字符串时不显示对应行
+- 断言表不用代码块包裹，值不保留双引号
+- GET 请求显示 `**请求体：** 无（GET请求）`
+- 用例间用 `---` 分隔
+
+---
+
+## Resources
+
+- `references/output-format.md` — 完整输出格式规范（含完整示例）
+- `references/test-design-rules.md` — 接口用例设计方法论
+- `scripts/render_md.py` — 渲染脚本（JSON/CSV → Markdown）

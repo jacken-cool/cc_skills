@@ -1,0 +1,11 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-05-12T18:30	baseline	buddyskill-auxre-to-test-suite	-	63	baseline	-	初始基线评估：tools/缺失、triggers为空、2个workflow不存在	dry_run
+2026-05-12T18:33	round1	buddyskill-auxre-to-test-suite	63	69	keep	D6-资源整合度	移除tools矩阵+无效workflow引用+清理allowed-tools+简化B3	dry_run
+2026-05-12T18:35	round2	buddyskill-auxre-to-test-suite	69	72	keep	D1-Frontmatter+D7-架构	补triggers+更新名称描述支持PDF+三种能力定位	dry_run
+2026-05-12T18:37	round3	buddyskill-auxre-to-test-suite	72	75	keep	D7-架构	精简B2会话参数段(30行→10行)	dry_run
+2026-05-12T18:42	round4	buddyskill-auxre-to-test-suite	75	76	keep	D5-指令精度	B2消除模糊表述：绑Glob工具+具体文件模式+话术模板+明确fallback	dry_run
+2026-05-15T10:20	baseline	api2case	-	64.4	baseline	-	初始基线评估：D4检查点(3分)+D3边界条件(5分)为最大短板	dry_run
+2026-05-15T10:25	round1	api2case	64.4	72.8	keep	D4-检查点设计	步骤3和4后各插入用户确认检查点+回退路径	dry_run
+2026-05-15T10:30	round2	api2case	72.8	79.8	keep	D3-边界条件	6个异常路径补充fallback：pymupdf未安装+OpenAPI失败+渲染异常+CSV编码+输入不明	dry_run
+2026-05-15T10:35	round3	api2case	79.8	85.3	keep	D5-指令具体性	OpenAPI YAML/JSON和纯文本两套解析策略+Apifox curl具体命令	dry_run
+2026-05-15T10:40	round4	api2case	85.3	87.0	keep	D4+CSV校验	检查点3输出确认+CSV列名格式校验	dry_run

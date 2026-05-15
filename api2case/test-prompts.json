@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "prompt": "我有一份接口文档，帮我生成接口测试用例 Markdown 文档，标题用"开场问题"。接口信息如下：\n\nPOST /api/v1/agents/list\n- appType: string, 必填, 固定值 \"infinitus\"\n- scene: string, 必填, 固定值 \"healthbuddy\"\n- suggestCateCode: string, 可选, 分类编码（如 BUPM-PHONE-HOME）\n- limit: int, 可选, 默认1, 每批返回条数\n\n业务规则：limit>3 时最多返回3条；无 suggestCateCode 时默认返回首页分类；指定分类不存在时降级到首页。\n\n响应结构：code/msg/data，data 为数组，每项含 suggestId/name/suggestCateCode/showMoreSuggestes/suggestes",
+    "expected": "生成符合格式规范的 Markdown 用例文档，包含目录 + 接口分组 + 卡片式用例，覆盖入口/降级/业务规则等场景"
+  },
+  {
+    "id": 2,
+    "prompt": "我有一个 Apifox 导出的 OpenAPI 文件 D:\\wordbuddypro\\api_export.md，里面包含"获取用户信息"和"更新用户设置"两个接口，帮我生成测试用例文档，标题用"用户模块"。",
+    "expected": "正确读取 OpenAPI 文件，解析两个接口，按接口分组输出用例，覆盖参数校验和响应结构验证"
+  },
+  {
+    "id": 3,
+    "prompt": "我已经有一个 CSV 测试用例文件 D:\\wordbuddypro\\接口测试用例_开场问题.csv，帮我把它转成 Markdown 格式的测试用例文档。",
+    "expected": "调用 render_md.py --csv 成功转换，生成符合格式的 .md 文件"
+  },
+  {
+    "id": 4,
+    "prompt": "我这里有一份产品给的接口方案 PDF D:\\wordbuddypro\\opp#168832\\接口方案.pdf，里面描述了"智能体分类接口"和"刷新开场问题接口"。帮我从这个 PDF 提取接口信息，生成测试用例 Markdown 文档，标题用"AI灵知开场问题"。",
+    "expected": "用 pymupdf 成功提取 PDF 文本，识别出接口、参数、业务规则，按 6 类场景设计用例，输出格式规范的 Markdown 文档"
+  }
+]
